@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 90">
+  <path d="M25 67V32l26-18 26 18v35H62V45H40v22Z" fill="#ff5a00"/>
+  <path d="M39 67V39l12-8 12 8v28" fill="none" stroke="#10284a" stroke-width="5"/>
+  <text x="93" y="43" font-family="Arial" font-size="27" font-weight="800" fill="#10284a">YOUR LOGO</text>
+  <text x="94" y="65" font-family="Arial" font-size="13" font-weight="700" letter-spacing="3" fill="#10284a">CONSTRUCTION</text>
+</svg>

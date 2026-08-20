@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard | SRI PVT LTD</title>
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><img src="../assets/logo-white.svg" alt="SRI PVT LTD"></div>
+  <nav>
+    <a class="active" href="#dashboard" data-section="dashboard">⌂ <span>Dashboard</span></a>
+    <a href="#settings" data-section="settings">⚙ <span>Website Settings</span></a>
+    <a href="#services" data-section="services">▦ <span>Services</span></a>
+    <a href="#pricing" data-section="pricing">₹ <span>Project Cost</span></a>
+    <a href="#cities" data-section="cities">⌖ <span>Cities</span></a>
+    <a href="#testimonials" data-section="testimonials">★ <span>Testimonials</span></a>
+    <a href="#media" data-section="media">▧ <span>Media Library</span></a>
+    <a href="#seo" data-section="seo">◎ <span>SEO</span></a>
+  </nav>
+  <div class="sidebar-bottom"><a href="../" target="_blank">↗ <span>View Website</span></a><button id="logout">↪ <span>Logout</span></button></div>
+</aside>
+
+<main class="admin-main">
+<header class="topbar">
+  <div class="top-left"><button class="mobile-menu" id="mobileMenu">☰</button><div><p class="eyebrow">CONTROL PANEL</p><h1 id="pageTitle">Dashboard</h1></div></div>
+  <div class="top-right"><span id="adminUser"></span><a href="../" target="_blank">View Website ↗</a></div>
+</header>
+<div id="status" class="status-bar"></div>
+
+<section class="admin-section active" id="dashboard">
+  <div class="welcome"><div><p class="eyebrow">WEBSITE MANAGEMENT</p><h2>Manage SRI PVT LTD website.</h2><p>Update approved content without editing the website code.</p></div><a class="primary" href="#settings">Edit Settings</a></div>
+  <div class="stats">
+    <div><span>▦</span><small>Services</small><strong id="countServices">—</strong></div>
+    <div><span>₹</span><small>Project Costs</small><strong id="countPricing">—</strong></div>
+    <div><span>⌖</span><small>Cities</small><strong id="countCities">—</strong></div>
+    <div><span>★</span><small>Testimonials</small><strong id="countTestimonials">—</strong></div>
+  </div>
+  <div class="two-panels">
+    <article class="panel"><p class="eyebrow">QUICK ACTIONS</p><h3>Content Management</h3><div class="quick-actions">
+      <a href="#services" data-section="services">＋ Add Service</a><a href="#pricing" data-section="pricing">＋ Add Package</a>
+      <a href="#cities" data-section="cities">＋ Add City</a><a href="#testimonials" data-section="testimonials">＋ Add Testimonial</a>
+      <a href="#media" data-section="media">＋ Upload Image</a><a href="#seo" data-section="seo">◎ Update SEO</a>
+    </div></article>
+    <article class="panel"><p class="eyebrow">SYSTEM</p><h3>Configuration</h3><div id="systemStatus"></div></article>
+  </div>
+</section>
+
+<section class="admin-section" id="settings">
+  <div class="section-head"><div><p class="eyebrow">GLOBAL CONTENT</p><h2>Website Settings</h2><p>Business, hero, about and social information.</p></div><button class="primary" id="saveSettings">Save Changes</button></div>
+  <form class="panel form-grid" id="settingsForm">
+    <div class="subhead">Business Information</div>
+    <label>Company Name<input id="companyName"></label><label>Phone<input id="phone"></label>
+    <label>WhatsApp Number<input id="whatsapp"></label><label>Email<input id="email" type="email"></label>
+    <label class="full">Address<input id="address"></label><label>Working Hours<input id="workingHours"></label><label>Google Maps Query<input id="mapQuery"></label>
+    <div class="subhead">Hero Section</div>
+    <label>Hero Eyebrow<input id="heroEyebrow"></label><label>Hero Heading<input id="heroHeading" placeholder="Use | to split orange line"></label>
+    <label class="full">Hero Description<textarea id="heroDescription"></textarea></label>
+    <div class="image-field full">
+  <label>Hero Image</label>
+  <div class="image-url-row"><input id="heroImage" placeholder="Paste an image URL or upload below"><button type="button" class="secondary image-upload-btn" data-image-target="heroImage">Upload & Crop</button></div>
+  <small class="field-help">Target: 16:9 landscape. Recommended 1600 × 900.</small>
+  <div class="image-thumb-wrap" id="heroImagePreview"></div>
+</div>
+<div class="image-field full">
+  <label>About Image</label>
+  <div class="image-url-row"><input id="aboutImage" placeholder="Paste an image URL or upload below"><button type="button" class="secondary image-upload-btn" data-image-target="aboutImage">Upload & Crop</button></div>
+  <small class="field-help">Target: 1.18:1 landscape. Recommended 1200 × 1020.</small>
+  <div class="image-thumb-wrap" id="aboutImagePreview"></div>
+</div>
+    <div class="subhead">About Us</div>
+    <label>Experience Display<input id="experienceYears" placeholder="10+"></label><label class="full">About Text<textarea id="aboutText"></textarea></label>
+    <div class="subhead">Social Links</div>
+    <label>Facebook<input id="facebook"></label><label>Instagram<input id="instagram"></label><label>LinkedIn<input id="linkedin"></label><label>YouTube<input id="youtube"></label>
+  </form>
+</section>
+
+<section class="admin-section" id="services">
+  <div class="section-head"><div><p class="eyebrow">CONTENT</p><h2>Services</h2><p>Manage services shown on the public website.</p></div><button class="primary" id="addService">＋ Add Service</button></div>
+  <div class="panel"><div class="toolbar"><input class="search" id="serviceSearch" placeholder="Search services..."><span id="serviceMeta"></span></div><div id="servicesList"></div></div>
+</section>
+
+<section class="admin-section" id="pricing">
+  <div class="section-head"><div><p class="eyebrow">CONTENT</p><h2>Project Cost</h2><p>Manage indicative project packages and pricing.</p></div><button class="primary" id="addPricing">＋ Add Package</button></div>
+  <div class="panel"><div class="toolbar"><input class="search" id="pricingSearch" placeholder="Search packages..."><span id="pricingMeta"></span></div><div id="pricingList"></div></div>
+</section>
+
+<section class="admin-section" id="cities">
+  <div class="section-head"><div><p class="eyebrow">SERVICE AREA</p><h2>Cities We Serve</h2><p>Manage locations displayed on the website.</p></div><button class="primary" id="addCity">＋ Add City</button></div>
+  <div class="panel"><div class="toolbar"><input class="search" id="citySearch" placeholder="Search cities..."><span id="cityMeta"></span></div><div id="citiesList"></div></div>
+</section>
+
+<section class="admin-section" id="testimonials">
+  <div class="section-head"><div><p class="eyebrow">SOCIAL PROOF</p><h2>Testimonials</h2><p>Publish only client-approved testimonials.</p></div><button class="primary" id="addTestimonial">＋ Add Testimonial</button></div>
+  <div class="panel"><div class="toolbar"><input class="search" id="testimonialSearch" placeholder="Search testimonials..."><span id="testimonialMeta"></span></div><div id="testimonialsList"></div></div>
+</section>
+
+<section class="admin-section" id="media">
+  <div class="section-head"><div><p class="eyebrow">MEDIA LIBRARY</p><h2>Images</h2><p>Upload approved images to Cloudinary and keep their URLs in the CMS.</p></div></div>
+  <div class="media-layout">
+    <article class="panel upload-box"><div class="upload-icon">↑</div><h3>Upload an image</h3><p>JPG, PNG or WebP. Maximum 8 MB.</p><input id="imageUpload" type="file" accept="image/jpeg,image/png,image/webp"><label class="primary choose" for="imageUpload">Choose Image</label><div class="progress" id="uploadProgress"><span></span></div><div id="uploadResult"></div></article>
+    <article class="panel"><p class="eyebrow">MEDIA GUIDELINES</p><h3>Recommended usage</h3><ul class="help"><li>Use real project photography whenever available.</li><li>Compress large originals before upload.</li><li>Prefer landscape images for Hero and About.</li><li>Do not upload copyrighted material without permission.</li></ul></article>
+  </div>
+  <div class="panel media-library"><div class="toolbar"><h3>Uploaded Images</h3><span id="mediaMeta"></span></div><div class="media-grid" id="mediaGrid"></div></div>
+</section>
+
+<section class="admin-section" id="seo">
+  <div class="section-head"><div><p class="eyebrow">SEARCH OPTIMISATION</p><h2>SEO Settings</h2><p>Metadata for search engines and social sharing.</p></div><button class="primary" id="saveSeo">Save SEO</button></div>
+  <form class="panel form-grid">
+    <label class="full">Page Title<input id="seoTitle"></label>
+    <label class="full">Meta Description<textarea id="seoDescription"></textarea></label>
+    <label class="full">Primary Keywords<input id="seoKeywords"></label>
+    <label>Canonical URL<input id="seoCanonical"></label>
+<label class="image-field">OG Image
+  <div class="image-url-row"><input id="seoOgImage" placeholder="Paste an image URL or upload below"><button type="button" class="secondary image-upload-btn" data-image-target="seoOgImage">Upload & Crop</button></div>
+  <small class="field-help">Target: 1.91:1 landscape. Recommended 1200 × 630.</small>
+  <div class="image-thumb-wrap" id="seoOgImagePreview"></div>
+</label>
+  </form>
+  <div class="seo-note">Use genuine services, locations and claims. Avoid keyword stuffing, fake testimonials and unverifiable guarantees.</div>
+</section>
+</main>
+</div>
+
+<div class="cropper-bg" id="cropperBg">
+  <div class="cropper-modal">
+    <div class="modal-head"><div><p class="eyebrow">IMAGE EDITOR</p><h2 id="cropTitle">Crop Image</h2><small id="cropDimensions"></small></div><button id="cropClose" class="close" type="button">×</button></div>
+    <div class="cropper-stage"><canvas id="cropCanvas"></canvas></div>
+    <div class="cropper-controls"><label>Zoom <input id="cropZoom" type="range" min="1" max="3" step=".01" value="1"></label><small>Drag the image to position it.</small></div>
+    <div class="modal-actions"><button class="secondary" id="cropCancel" type="button">Cancel</button><button class="primary" id="cropConfirm" type="button">Crop & Upload</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal"><div class="modal-head"><div><p class="eyebrow" id="modalEyebrow">CONTENT</p><h2 id="modalTitle">Edit</h2></div><button id="modalClose" class="close">×</button></div><form id="itemForm" class="modal-form"></form><div class="modal-actions"><button class="secondary" id="modalCancel" type="button">Cancel</button><button class="primary" form="itemForm">Save</button></div></div>
+</div>
+
+<script src="../config.js"></script><script type="module" src="js/dashboard.js"></script>
+</body>
+</html>
