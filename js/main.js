@@ -4,12 +4,18 @@ import { getFirestore, collection, getDocs, doc, getDoc, query, where } from "ht
 const C = window.SITE_CONFIG || {};
 const defaults = {
   services: [
-    ["Residential Construction","⌂",""],
-    ["Commercial Construction","▦",""],
-    ["Renovation & Remodeling","⚒",""],
-    ["Interior Design","▱",""],
-    ["Project Management","☷",""],
-    ["Turnkey Solutions","⚿",""]
+    ["Architectural Design","⌂","","Thoughtfully designed spaces that combine aesthetics, functionality and efficient planning, tailored to your vision, lifestyle and site requirements."],
+    ["Interior Design","▱","","Sophisticated interiors designed around comfort, functionality and personality, with carefully planned materials, lighting, finishes and spatial details."],
+    ["Construction Services","▦","","End-to-end construction solutions delivered with quality materials, skilled execution, disciplined project management and a strong focus on safety and durability."],
+    ["3D Visualization","◈","","Realistic 3D views and walkthroughs that bring your design to life, helping you understand spaces, finishes and proportions before construction begins."],
+    ["Structural Design","▥","","Safe, stable and efficient structural solutions engineered for strength, durability and long-term performance while complementing the architectural design."],
+    ["2D Drawings & Plans","◇","","Precise architectural drawings and detailed plans that translate design concepts into clear documentation for approvals, coordination and execution."],
+    ["Front Elevation Design","◆","","Distinctive building elevations that create a strong visual identity through balanced proportions, contemporary materials, textures, lighting and architectural details."],
+    ["Landscape Design","♧","","Beautiful and functional outdoor environments planned with thoughtful planting, pathways, lighting and hardscape elements to complement the architecture."],
+    ["Vastu Consultation","◎","","Vastu-based planning guidance integrated with modern architectural principles to create balanced, practical and harmonious spaces."],
+    ["Site Supervision & Project Management","◉","","Professional site coordination and supervision focused on quality, workmanship, safety, timelines and smooth execution from start to completion."],
+    ["Interior Furniture Layout","◫","","Efficient furniture planning that optimizes space, movement, comfort and functionality while maintaining a cohesive interior design aesthetic."],
+    ["Technical Consultancy","☷","","Practical technical expertise for planning, design coordination, construction decisions and project execution, helping clients make informed choices at every stage."]
   ],
   pricing: [
     ["Basic Project","Ideal for small construction and residential projects.","₹ 10,00,000"],
@@ -38,11 +44,20 @@ function render(data) {
       <a class="btn ${x[2] === "Contact Us" ? "btn-outline" : "btn-orange"}" href="#contact">Get Quote</a>
     </article>`).join("");
 
-  document.querySelector("#servicesGrid").innerHTML = data.services.map(x => `
-    <article class="service-card">
-      <div class="icon">${x[2] ? `<img src="${esc(x[2])}" alt="${esc(x[0])}" loading="lazy">` : esc(x[1])}</div>
+  document.querySelector("#servicesGrid").innerHTML = data.services.map((x, i) => `
+    <article class="service-card" tabindex="0" role="button" data-service-index="${i}" aria-label="View details for ${esc(x[0])}">
+      <div class="icon">${x[2] ? `<img class="service-image" src="${esc(x[2])}" alt="${esc(x[0])}" loading="lazy">` : esc(x[1])}</div>
       <h3>${esc(x[0])}</h3>
+      <span class="service-card-more">View Details</span>
     </article>`).join("");
+
+  document.querySelectorAll("#servicesGrid .service-card").forEach(card => {
+    const open = () => openServiceModal(data.services[Number(card.dataset.serviceIndex)]);
+    card.addEventListener("click", open);
+    card.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+    });
+  });
 
   document.querySelector("#citiesGrid").innerHTML = data.cities.map(x => `
     <article class="city-card"><div class="icon">⌖</div><div>${esc(x)}</div></article>`).join("");
@@ -58,6 +73,50 @@ function render(data) {
   document.querySelector("#contactService").innerHTML =
     '<option value="">Select Service</option>' +
     data.services.map(x => `<option value="${esc(x[0])}">${esc(x[0])}</option>`).join("");
+}
+
+
+let activeService = null;
+
+function openServiceModal(service) {
+  if (!service) return;
+  activeService = service;
+
+  const modal = document.querySelector("#serviceModal");
+  const title = document.querySelector("#serviceModalTitle");
+  const description = document.querySelector("#serviceModalDescription");
+  const image = document.querySelector("#serviceModalImage");
+  const placeholder = document.querySelector("#serviceModalPlaceholder");
+
+  title.textContent = service[0] || "Service";
+  description.textContent = service[3] || "Professional service delivered with quality, precision and attention to your project requirements.";
+
+  if (service[2]) {
+    image.src = service[2];
+    image.alt = service[0] || "Service image";
+    image.hidden = false;
+    placeholder.hidden = true;
+  } else {
+    image.removeAttribute("src");
+    image.alt = "";
+    image.hidden = true;
+    placeholder.hidden = false;
+    placeholder.textContent = service[1] || "◆";
+  }
+
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+  document.querySelector("#serviceModalClose").focus();
+}
+
+function closeServiceModal() {
+  const modal = document.querySelector("#serviceModal");
+  if (!modal) return;
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("modal-open");
+  activeService = null;
 }
 
 function applySiteSettings(s) {
@@ -108,7 +167,7 @@ async function loadFirebaseContent() {
         const snap = await getDocs(query(collection(db, collectionName), where("published","==",true)));
         const docs = snap.docs.map(d => ({id:d.id,...d.data()})).sort((a,b) => (a.order??999)-(b.order??999));
         if (!docs.length) continue;
-        if (key === "services") data.services = docs.map(d => [d.name || "Service", d.icon || "◇", d.iconImage || ""]);
+        if (key === "services") data.services = docs.map(d => [d.name || "Service", d.icon || "◇", d.iconImage || "", d.desc || "Professional service delivered with quality, precision and attention to your project requirements."]);
         if (key === "pricing") data.pricing = docs.map(d => [d.name || "Project", d.desc || "", d.price || "Contact Us"]);
         if (key === "cities") data.cities = docs.map(d => d.name).filter(Boolean);
         if (key === "testimonials") data.testimonials = docs.map(d => [d.name || "Client", d.role || "Client", d.text || "", d.rating || 5]);
@@ -131,6 +190,16 @@ async function loadFirebaseContent() {
 
 applySiteSettings({});
 render(defaults);
+
+
+document.querySelector("#serviceModalClose")?.addEventListener("click", closeServiceModal);
+document.querySelector("#serviceModal [data-service-close]")?.addEventListener("click", closeServiceModal);
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && document.querySelector("#serviceModal")?.classList.contains("open")) {
+    closeServiceModal();
+  }
+});
+document.querySelector("#serviceModalCta")?.addEventListener("click", closeServiceModal);
 
 document.querySelector("#menuToggle").addEventListener("click", () => {
   const nav = document.querySelector("#primaryNav");
