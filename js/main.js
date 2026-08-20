@@ -1,6 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getFirestore, collection, getDocs, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
+const CACHE_KEY = "sri-site-cache-v2";
+const CACHE_TTL = 5 * 60 * 1000;
+
 const C = window.SITE_CONFIG || {};
 const defaults = {
   services: [
@@ -152,48 +155,97 @@ function applySiteSettings(s) {
     "?text=" + encodeURIComponent("Hello, I would like to enquire about your construction services.");
 }
 
+function getCachedSiteData() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+    if (!cached || !cached.data) return null;
+    return cached;
+  } catch { return null; }
+}
+
+function setCachedSiteData(data) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({time: Date.now(), data}));
+  } catch {}
+}
+
+function renderSiteData(data) {
+  render({
+    services: data.services?.length ? data.services : defaults.services,
+    pricing: data.pricing?.length ? data.pricing : defaults.pricing,
+    cities: data.cities?.length ? data.cities : defaults.cities,
+    testimonials: data.testimonials?.length ? data.testimonials : defaults.testimonials
+  });
+}
+
 async function loadFirebaseContent() {
   if (!C.firebase?.enabled) return;
+
+  const cached = getCachedSiteData();
+  if (cached?.data) {
+    if (cached.data.settings) applySiteSettings(cached.data.settings);
+    renderSiteData(cached.data);
+  }
 
   try {
     const app = initializeApp(C.firebase);
     const db = getFirestore(app);
-    const data = {services:[],pricing:[],cities:[],testimonials:[]};
 
-    for (const [collectionName,key] of [
-      ["services","services"],["projectCosts","pricing"],["cities","cities"],["testimonials","testimonials"]
-    ]) {
-      try {
-        const snap = await getDocs(query(collection(db, collectionName), where("published","==",true)));
-        const docs = snap.docs.map(d => ({id:d.id,...d.data()})).sort((a,b) => (a.order??999)-(b.order??999));
-        if (!docs.length) continue;
-        if (key === "services") data.services = docs.map(d => [d.name || "Service", d.icon || "◇", d.iconImage || "", d.desc || "Professional service delivered with quality, precision and attention to your project requirements."]);
-        if (key === "pricing") data.pricing = docs.map(d => [d.name || "Project", d.desc || "", d.price || "Contact Us"]);
-        if (key === "cities") data.cities = docs.map(d => d.name).filter(Boolean);
-        if (key === "testimonials") data.testimonials = docs.map(d => [d.name || "Client", d.role || "Client", d.text || "", d.rating || 5]);
-      } catch (e) { console.warn("Collection read failed:", collectionName, e); }
-    }
+    const [servicesSnap, pricingSnap, citiesSnap, testimonialsSnap, settingsSnap] =
+      await Promise.all([
+        getDocs(query(collection(db,"services"), where("published","==",true))),
+        getDocs(query(collection(db,"projectCosts"), where("published","==",true))),
+        getDocs(query(collection(db,"cities"), where("published","==",true))),
+        getDocs(query(collection(db,"testimonials"), where("published","==",true))),
+        getDoc(doc(db,"siteSettings","main"))
+      ]);
 
-    const settingsSnap = await getDoc(doc(db,"siteSettings","main"));
-    if (settingsSnap.exists()) applySiteSettings(settingsSnap.data());
+    const ordered = snap => snap.docs
+      .map(d => ({id:d.id,...d.data()}))
+      .sort((a,b) => (a.order ?? 999) - (b.order ?? 999));
 
-    render({
-      services: data.services.length ? data.services : defaults.services,
-      pricing: data.pricing.length ? data.pricing : defaults.pricing,
-      cities: data.cities.length ? data.cities : defaults.cities,
-      testimonials: data.testimonials.length ? data.testimonials : defaults.testimonials
-    });
+    const services = ordered(servicesSnap).map(d => [
+      d.name || "Service",
+      d.icon || "◇",
+      d.iconImage || "",
+      d.desc || "Professional service delivered with quality, precision and attention to your project requirements."
+    ]);
+
+    const pricing = ordered(pricingSnap).map(d => [
+      d.name || "Project", d.desc || "", d.price || "Contact Us"
+    ]);
+
+    const cities = ordered(citiesSnap).map(d => d.name).filter(Boolean);
+
+    const testimonials = ordered(testimonialsSnap).map(d => [
+      d.name || "Client", d.role || "Client", d.text || "", d.rating || 5
+    ]);
+
+    const settings = settingsSnap.exists() ? settingsSnap.data() : {};
+    applySiteSettings(settings);
+
+    const data = {services, pricing, cities, testimonials, settings};
+    setCachedSiteData(data);
+    renderSiteData(data);
   } catch (e) {
-    console.warn("Firebase unavailable; using fallback content.", e);
+    console.warn("Firebase unavailable; cached/fallback content used.", e);
+    if (!cached?.data) render(defaults);
   }
 }
 
 applySiteSettings({});
-render(defaults);
+const initialCache = getCachedSiteData();
+if (initialCache?.data) {
+  if (initialCache.data.settings) applySiteSettings(initialCache.data.settings);
+  renderSiteData(initialCache.data);
+} else {
+  render(defaults);
+}
 
 
 document.querySelector("#serviceModalClose")?.addEventListener("click", closeServiceModal);
 document.querySelector("#serviceModal [data-service-close]")?.addEventListener("click", closeServiceModal);
+document.querySelector("#serviceModal")?.addEventListener("click", e => { if (e.target.id === "serviceModal") closeServiceModal(); });
 document.addEventListener("keydown", e => {
   if (e.key === "Escape" && document.querySelector("#serviceModal")?.classList.contains("open")) {
     closeServiceModal();
