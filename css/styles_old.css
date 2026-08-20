@@ -515,3 +515,99 @@ body.modal-open{overflow:hidden}
     margin-right:auto;
   }
 }
+
+
+/* FINAL SERVICE CARD IMAGE TREATMENT */
+.service-item{
+  min-width:0;
+}
+.service-card{
+  padding:0 0 15px;
+  min-height:0;
+  overflow:hidden;
+  border-radius:14px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  background:#fff;
+}
+.service-card .icon{
+  width:100%;
+  height:220px;
+  min-height:220px;
+  flex:0 0 220px;
+  padding:0;
+  margin:0;
+  display:block;
+  overflow:hidden;
+  background:#eef2f5;
+}
+.service-card .service-image{
+  display:block;
+  width:100%;
+  height:100%;
+  max-width:none;
+  max-height:none;
+  margin:0;
+  padding:0;
+  border-radius:0;
+  object-fit:cover;
+  object-position:center;
+}
+.service-card h3{
+  width:auto;
+  min-height:0;
+  margin:14px 14px 0;
+  padding:0;
+  display:block;
+  font-size:14px;
+  line-height:1.35;
+  text-align:center;
+}
+.service-card-more{
+  margin:7px 0 0;
+  padding:0;
+}
+
+/* If a service has no uploaded image, keep the icon centered in the full image area. */
+.service-card .icon:not(:has(.service-image)){
+  display:grid;
+  place-items:center;
+  padding:20px;
+}
+
+/* Desktop: large visual image area. */
+@media(min-width:1101px){
+  .service-card .icon{
+    height:230px;
+    min-height:230px;
+    flex-basis:230px;
+  }
+}
+
+/* Tablet */
+@media(max-width:1100px){
+  .service-card .icon{
+    height:210px;
+    min-height:210px;
+    flex-basis:210px;
+  }
+}
+
+/* Mobile */
+@media(max-width:780px){
+  .service-card .icon{
+    height:200px;
+    min-height:200px;
+    flex-basis:200px;
+  }
+}
+
+/* Small phones */
+@media(max-width:560px){
+  .service-card .icon{
+    height:220px;
+    min-height:220px;
+    flex-basis:220px;
+  }
+}
