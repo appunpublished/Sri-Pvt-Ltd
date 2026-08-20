@@ -4,12 +4,12 @@ import { getFirestore, collection, getDocs, doc, getDoc, query, where } from "ht
 const C = window.SITE_CONFIG || {};
 const defaults = {
   services: [
-    ["Residential Construction","⌂"],
-    ["Commercial Construction","▦"],
-    ["Renovation & Remodeling","⚒"],
-    ["Interior Design","▱"],
-    ["Project Management","☷"],
-    ["Turnkey Solutions","⚿"]
+    ["Residential Construction","⌂",""],
+    ["Commercial Construction","▦",""],
+    ["Renovation & Remodeling","⚒",""],
+    ["Interior Design","▱",""],
+    ["Project Management","☷",""],
+    ["Turnkey Solutions","⚿",""]
   ],
   pricing: [
     ["Basic Project","Ideal for small construction and residential projects.","₹ 10,00,000"],
@@ -39,7 +39,10 @@ function render(data) {
     </article>`).join("");
 
   document.querySelector("#servicesGrid").innerHTML = data.services.map(x => `
-    <article class="service-card"><div class="icon">${esc(x[1])}</div><h3>${esc(x[0])}</h3></article>`).join("");
+    <article class="service-card">
+      <div class="icon">${x[2] ? `<img src="${esc(x[2])}" alt="${esc(x[0])}" loading="lazy">` : esc(x[1])}</div>
+      <h3>${esc(x[0])}</h3>
+    </article>`).join("");
 
   document.querySelector("#citiesGrid").innerHTML = data.cities.map(x => `
     <article class="city-card"><div class="icon">⌖</div><div>${esc(x)}</div></article>`).join("");
@@ -105,7 +108,7 @@ async function loadFirebaseContent() {
         const snap = await getDocs(query(collection(db, collectionName), where("published","==",true)));
         const docs = snap.docs.map(d => ({id:d.id,...d.data()})).sort((a,b) => (a.order??999)-(b.order??999));
         if (!docs.length) continue;
-        if (key === "services") data.services = docs.map(d => [d.name || "Service", d.icon || "◇"]);
+        if (key === "services") data.services = docs.map(d => [d.name || "Service", d.icon || "◇", d.iconImage || ""]);
         if (key === "pricing") data.pricing = docs.map(d => [d.name || "Project", d.desc || "", d.price || "Contact Us"]);
         if (key === "cities") data.cities = docs.map(d => d.name).filter(Boolean);
         if (key === "testimonials") data.testimonials = docs.map(d => [d.name || "Client", d.role || "Client", d.text || "", d.rating || 5]);

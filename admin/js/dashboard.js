@@ -20,7 +20,7 @@ const configs = {
   services:{title:"Service",fields:[["name","Service Name","text",1],["icon","Icon","text",0],["iconImage","Service Image URL","text",0],["desc","Description","textarea",1],["published","Published","checkbox",0]]},
   projectCosts:{title:"Project Package",fields:[["name","Package Name","text",1],["price","Price","text",1],["note","Price Note","text",0],["desc","Description","textarea",1],["icon","Icon","text",0],["published","Published","checkbox",0]]},
   cities:{title:"City",fields:[["name","City Name","text",1],["icon","Icon","text",0],["published","Published","checkbox",0]]},
-  testimonials:{title:"Testimonial",fields:[["name","Client Name","text",1],["role","Client Designation","text",0],["rating","Rating 1–5","number",1],["text","Testimonial","textarea",1],["image","Client Image","image",0],["published","Published","checkbox",0]]}
+  testimonials:{title:"Testimonial",fields:[["name","Client Name","text",1],["role","Client Designation","text",0],["rating","Rating 1–5","number",1],["text","Testimonial","textarea",1],["image","Client Image URL","text",0],["published","Published","checkbox",0]]}
 };
 
 async function readCollection(name){
@@ -102,12 +102,71 @@ function serviceIconPicker(item={}) {
         <input name="iconImage" id="serviceIconImage" type="url" value="${esc(item.iconImage||"")}" placeholder="Upload below or paste a Cloudinary URL">
       </label>
       <div class="service-upload-row">
-        <button type="button" class="secondary image-upload-btn" data-image-target="serviceIconImage" data-target-key="iconImage">Upload & Crop</button>
+        <label class="secondary upload-service-image" for="serviceImageFile">Upload Service Image</label>
+        <input id="serviceImageFile" type="file" accept="image/jpeg,image/png,image/webp">
         <span id="serviceImageStatus"></span>
       </div>
-      <small class="field-help">Crop target: 512 × 512. You can drag the image and zoom before uploading.</small>
-      <div class="image-thumb-wrap" id="preview_serviceIconImage">${item?.iconImage?`<img src="${esc(item.iconImage)}" alt="Service image">`:""}</div>
+      <small class="field-help">Images are automatically center-cropped, resized to 256 × 256 and converted to WebP before upload.</small>
     </div>`;
+}
+
+
+async function prepareAboutImage(file) {
+  if (!file) return null;
+  if (!["image/jpeg","image/png","image/webp"].includes(file.type)) {
+    throw new Error("Only JPG, PNG and WebP images are allowed.");
+  }
+  if (file.size > 12 * 1024 * 1024) throw new Error("Original image must be 12 MB or smaller.");
+
+  const bitmap = await createImageBitmap(file);
+  const targetW = 1200, targetH = 800;
+  const targetRatio = targetW / targetH;
+  const sourceRatio = bitmap.width / bitmap.height;
+
+  let sx = 0, sy = 0, sw = bitmap.width, sh = bitmap.height;
+  if (sourceRatio > targetRatio) {
+    sw = Math.round(bitmap.height * targetRatio);
+    sx = Math.round((bitmap.width - sw) / 2);
+  } else {
+    sh = Math.round(bitmap.width / targetRatio);
+    sy = Math.round((bitmap.height - sh) / 2);
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = targetW; canvas.height = targetH;
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, targetW, targetH);
+
+  return new Promise((resolve,reject) =>
+    canvas.toBlob(b => b ? resolve(b) : reject(new Error("Could not process image.")),
+      "image/webp", .88)
+  );
+}
+
+async function uploadCloudinaryProcessed(file, folder, processor, statusId, filename) {
+  if (!C.cloudinary?.enabled) throw new Error("Cloudinary is not configured.");
+  const statusEl = statusId ? $("#" + statusId) : null;
+  if (statusEl) statusEl.textContent = "Processing…";
+
+  const blob = await processor(file);
+  const body = new FormData();
+  body.append("file", blob, filename);
+  body.append("upload_preset", C.cloudinary.uploadPreset);
+  body.append("folder", (C.cloudinary.folder || "website") + "/" + folder);
+
+  if (statusEl) statusEl.textContent = "Uploading…";
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${C.cloudinary.cloudName}/image/upload`,
+    {method:"POST", body}
+  );
+  const data = await response.json();
+  if (!response.ok || !data.secure_url) {
+    throw new Error(data.error?.message || "Cloudinary upload failed.");
+  }
+  if (statusEl) statusEl.textContent = "Uploaded";
+  return data.secure_url;
 }
 
 async function prepareServiceImage(file) {
@@ -127,142 +186,9 @@ async function prepareServiceImage(file) {
 }
 
 async function uploadServiceImage(file) {
-  const statusEl = $("#serviceImageStatus");
-  statusEl.textContent = "Processing…";
-  if (!C.cloudinary?.enabled) throw new Error("Cloudinary is not configured.");
-  const blob = await prepareServiceImage(file);
-  const body = new FormData();
-  body.append("file", blob, "service-icon.webp");
-  body.append("upload_preset", C.cloudinary.uploadPreset);
-  body.append("folder", (C.cloudinary.folder || "website") + "/services");
-  statusEl.textContent = "Uploading…";
-  const response = await fetch(`https://api.cloudinary.com/v1_1/${C.cloudinary.cloudName}/image/upload`, {method:"POST",body});
-  const data = await response.json();
-  if (!response.ok || !data.secure_url) throw new Error(data.error?.message || "Cloudinary upload failed.");
-  statusEl.textContent = "Uploaded";
-  return data.secure_url;
-}
-
-
-const IMAGE_TARGETS = {
-  heroImage: {label:"Hero Image", width:1600, height:900},
-  aboutImage: {label:"About Image", width:1200, height:1020},
-  seoOgImage: {label:"OG Image", width:1200, height:630},
-  iconImage: {label:"Service Image", width:512, height:512},
-  image: {label:"Client Image", width:512, height:512}
-};
-
-function imageField(key,label,value="",col=""){
-  const targetKey = key==="iconImage" ? "iconImage" : key;
-  const target = IMAGE_TARGETS[targetKey] || IMAGE_TARGETS.image;
-  return `<div class="image-field modal-image-field">
-    <label>${esc(label)}</label>
-    <div class="image-url-row">
-      <input name="${esc(key)}" id="imageField_${esc(key)}" type="url" value="${esc(value)}" placeholder="Paste an image URL or upload below">
-      <button type="button" class="secondary image-upload-btn" data-image-target="imageField_${esc(key)}" data-target-key="${esc(targetKey)}">Upload & Crop</button>
-    </div>
-    <small class="field-help">Crop target: ${target.width} × ${target.height} (${(target.width/target.height).toFixed(2)}:1).</small>
-    <div class="image-thumb-wrap" id="preview_imageField_${esc(key)}">${value?`<img src="${esc(value)}" alt="${esc(label)}">`:""}</div>
-  </div>`;
-}
-
-function openCropper(file,targetKey,onDone){
-  const target=IMAGE_TARGETS[targetKey]||IMAGE_TARGETS.image;
-  const reader=new FileReader();
-  reader.onload=()=>{
-    const img=new Image();
-    img.onload=()=>{
-      const overlay=$("#cropperBg"), canvas=$("#cropCanvas"), ctx=canvas.getContext("2d");
-      const maxW=720,maxH=480, frameRatio=target.width/target.height;
-      let frameW=Math.min(maxW, maxH*frameRatio), frameH=frameW/frameRatio;
-      if(frameH>maxH){frameH=maxH;frameW=frameH*frameRatio;}
-      canvas.width=Math.round(frameW);canvas.height=Math.round(frameH);
-      let zoom=1, offsetX=0,offsetY=0,dragging=false,lastX=0,lastY=0;
-      const fit=Math.max(canvas.width/img.width,canvas.height/img.height);
-      const minZoom=fit;
-      function draw(){
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        const scale=minZoom*zoom, w=img.width*scale,h=img.height*scale;
-        const x=(canvas.width-w)/2+offsetX,y=(canvas.height-h)/2+offsetY;
-        ctx.save();ctx.beginPath();ctx.rect(0,0,canvas.width,canvas.height);ctx.clip();
-        ctx.drawImage(img,x,y,w,h);ctx.restore();
-      }
-      $("#cropTitle").textContent=`Crop ${target.label}`;
-      $("#cropDimensions").textContent=`Output: ${target.width} × ${target.height}`;
-      $("#cropZoom").value=1;
-      overlay.classList.add("open");draw();
-      const clamp=()=>{
-        const scale=minZoom*zoom,w=img.width*scale,h=img.height*scale;
-        const maxX=Math.max(0,(w-canvas.width)/2),maxY=Math.max(0,(h-canvas.height)/2);
-        offsetX=Math.max(-maxX,Math.min(maxX,offsetX));offsetY=Math.max(-maxY,Math.min(maxY,offsetY));
-      };
-      $("#cropZoom").oninput=()=>{zoom=Number($("#cropZoom").value);clamp();draw();};
-      canvas.onpointerdown=e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture(e.pointerId);};
-      canvas.onpointermove=e=>{if(!dragging)return;offsetX+=e.clientX-lastX;offsetY+=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;clamp();draw();};
-      canvas.onpointerup=()=>dragging=false;
-      canvas.onpointercancel=()=>dragging=false;
-      $("#cropCancel").onclick=()=>overlay.classList.remove("open");
-      $("#cropClose").onclick=()=>overlay.classList.remove("open");
-      $("#cropConfirm").onclick=async()=>{
-        const scale=minZoom*zoom,w=img.width*scale,h=img.height*scale;
-        const x=(canvas.width-w)/2+offsetX,y=(canvas.height-h)/2+offsetY;
-        const out=document.createElement("canvas");out.width=target.width;out.height=target.height;
-        const octx=out.getContext("2d");octx.imageSmoothingEnabled=true;octx.imageSmoothingQuality="high";
-        const sx=Math.max(0,-x)/scale,sy=Math.max(0,-y)/scale;
-        const sw=Math.min(img.width,(canvas.width-x)/scale)-sx,sh=Math.min(img.height,(canvas.height-y)/scale)-sy;
-        octx.drawImage(img,sx,sy,sw,sh,Math.max(0,x<0?0:x/scale)*target.width/(canvas.width/scale),Math.max(0,y<0?0:y/scale)*target.height/(canvas.height/scale),sw*target.width/(canvas.width/scale),sh*target.height/(canvas.height/scale));
-        out.toBlob(async blob=>{
-          if(!blob)return;
-          overlay.classList.remove("open");
-          await onDone(blob);
-        },"image/webp",.9);
-      };
-    };
-    img.src=reader.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-async function uploadCroppedImage(file,targetKey,targetInputId){
-  if(!C.cloudinary?.enabled) throw new Error("Cloudinary is not configured.");
-  const blob = file;
-  const body=new FormData();
-  body.append("file",blob,"cropped.webp");
-  body.append("upload_preset",C.cloudinary.uploadPreset);
-  body.append("folder",(C.cloudinary.folder||"website")+"/cropped");
-  const statusEl=$("#imageUploadStatus");
-  if(statusEl)statusEl.textContent="Uploading…";
-  const r=await fetch(`https://api.cloudinary.com/v1_1/${C.cloudinary.cloudName}/image/upload`,{method:"POST",body});
-  const j=await r.json();
-  if(!r.ok||!j.secure_url)throw new Error(j.error?.message||"Cloudinary upload failed.");
-  const input=$("#"+targetInputId);
-  if(input){input.value=j.secure_url;input.dispatchEvent(new Event("input",{bubbles:true}));}
-  const preview=$("#preview_"+targetInputId);
-  if(preview)preview.innerHTML=`<img src="${esc(j.secure_url)}" alt="Selected image">`;
-  const globalTarget=$("#"+targetInputId);
-  if(globalTarget)globalTarget.value=j.secure_url;
-  if(statusEl)statusEl.textContent="Uploaded";
-  return j.secure_url;
-}
-
-function bindImageUploadButtons(root=document){
-  root.querySelectorAll(".image-upload-btn").forEach(btn=>{
-    if(btn.dataset.bound)return;btn.dataset.bound="1";
-    btn.onclick=()=>{
-      const targetId=btn.dataset.imageTarget,targetKey=btn.dataset.targetKey||targetId;
-      const input=document.createElement("input");input.type="file";input.accept="image/jpeg,image/png,image/webp";
-      input.onchange=async()=>{
-        const file=input.files?.[0];if(!file)return;
-        if(!["image/jpeg","image/png","image/webp"].includes(file.type)){status("Only JPG, PNG and WebP are allowed.",true);return;}
-        if(file.size>12*1024*1024){status("Original image must be 12 MB or smaller.",true);return;}
-        openCropper(file,targetKey,async blob=>{
-          try{await uploadCroppedImage(blob,targetKey,targetId);status("Image cropped and uploaded.");}
-          catch(e){status(e.message||"Image upload failed.",true);}
-        });
-      };
-      input.click();
-    };
-  });
+  return uploadCloudinaryProcessed(
+    file, "services", prepareServiceImage, "serviceImageStatus", "service-icon.webp"
+  );
 }
 
 function openModal(col,item=null){
@@ -275,7 +201,6 @@ function openModal(col,item=null){
     if(col==="services" && key==="icon") return serviceIconPicker(item||{});
     if(col==="services" && key==="iconImage") return "";
     if(type==="checkbox") return `<label class="check"><input name="${key}" type="checkbox" ${item?.[key]!==false?"checked":""}> ${esc(label)}</label>`;
-    if(type==="image") return imageField(key,label,item?.[key]||"", col);
     return `<label>${esc(label)}${type==="textarea"
       ? `<textarea name="${key}" rows="4" ${req?"required":""}>${esc(item?.[key]||"")}</textarea>`
       : `<input name="${key}" type="${type}" value="${esc(item?.[key]||"")}" ${req?"required":""}>`}</label>`;
@@ -283,12 +208,22 @@ function openModal(col,item=null){
   $("#modalBg").classList.add("open");
 
   if(col==="services"){
-    bindImageUploadButtons($("#itemForm"));
     $$(".icon-choice").forEach(btn => btn.onclick=()=>{
       $$(".icon-choice").forEach(x=>x.classList.remove("selected"));
       btn.classList.add("selected");
       $("#serviceIconValue").value=btn.dataset.icon;
     });
+    $("#serviceImageFile").onchange=async e=>{
+      const file=e.target.files?.[0];
+      if(!file)return;
+      try{
+        const url=await uploadServiceImage(file);
+        $("#serviceIconImage").value=url;
+      }catch(err){
+        $("#serviceImageStatus").textContent=err.message;
+        status(err.message,true);
+      }
+    };
   }
 }
 
@@ -320,9 +255,29 @@ function fillSettings(){
     experienceYears:s.experienceYears,aboutText:s.aboutText,facebook:s.social?.facebook,instagram:s.social?.instagram,linkedin:s.social?.linkedin,youtube:s.social?.youtube
   };
   Object.entries(map).forEach(([id,v])=>{if($("#"+id))$("#"+id).value=v||""});
-  ["heroImage","aboutImage"].forEach(id=>{const p=$("#"+id+"Preview");if(p&&$("#"+id).value)p.innerHTML=`<img src="${esc($("#"+id).value)}" alt="Selected image">`;});
+  renderAboutImagePreview();
 }
-bindImageUploadButtons(document);
+function renderAboutImagePreview(){
+  const url = String($("#aboutImage")?.value || "").trim();
+  const box = $("#aboutImagePreview");
+  if (!box) return;
+  box.innerHTML = url ? `<img src="${esc(url)}" alt="About image preview">` : "";
+}
+$("#aboutImage")?.addEventListener("input", renderAboutImagePreview);
+$("#aboutImageFile")?.addEventListener("change", async e=>{
+  const file = e.target.files?.[0];
+  if (!file) return;
+  try{
+    const url = await uploadCloudinaryProcessed(
+      file, "about", prepareAboutImage, "aboutImageStatus", "about.webp"
+    );
+    $("#aboutImage").value = url;
+    renderAboutImagePreview();
+  }catch(err){
+    $("#aboutImageStatus").textContent = err.message;
+    status(err.message, true);
+  }
+});
 $("#saveSettings").onclick=async()=>{
   const data={name:$("#companyName").value.trim(),phone:$("#phone").value.trim(),whatsapp:$("#whatsapp").value.trim(),email:$("#email").value.trim(),
     address:$("#address").value.trim(),workingHours:$("#workingHours").value.trim(),mapQuery:$("#mapQuery").value.trim(),
@@ -332,7 +287,7 @@ $("#saveSettings").onclick=async()=>{
   await setDoc(doc(state.db,"siteSettings","main"),data,{merge:true});state.settings={...state.settings,...data};status("Website settings saved.");
 };
 
-function fillSeo(){const s=state.seo||{};$("#seoTitle").value=s.title||"";$("#seoDescription").value=s.description||"";$("#seoKeywords").value=s.keywords||"";$("#seoCanonical").value=s.canonical||C.site?.url||"";$("#seoOgImage").value=s.ogImage||"";if(s.ogImage)$("#seoOgImagePreview").innerHTML=`<img src="${esc(s.ogImage)}" alt="OG image">`; }
+function fillSeo(){const s=state.seo||{};$("#seoTitle").value=s.title||"";$("#seoDescription").value=s.description||"";$("#seoKeywords").value=s.keywords||"";$("#seoCanonical").value=s.canonical||C.site?.url||"";$("#seoOgImage").value=s.ogImage||""}
 $("#saveSeo").onclick=async()=>{
   const data={title:$("#seoTitle").value.trim(),description:$("#seoDescription").value.trim(),keywords:$("#seoKeywords").value.trim(),canonical:$("#seoCanonical").value.trim(),ogImage:$("#seoOgImage").value.trim(),updatedAt:serverTimestamp()};
   await setDoc(doc(state.db,"siteSettings","seo"),data,{merge:true});state.seo={...state.seo,...data};status("SEO settings saved.");

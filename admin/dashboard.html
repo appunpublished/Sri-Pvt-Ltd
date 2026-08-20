@@ -57,18 +57,17 @@
     <div class="subhead">Hero Section</div>
     <label>Hero Eyebrow<input id="heroEyebrow"></label><label>Hero Heading<input id="heroHeading" placeholder="Use | to split orange line"></label>
     <label class="full">Hero Description<textarea id="heroDescription"></textarea></label>
-    <div class="image-field full">
-  <label>Hero Image</label>
-  <div class="image-url-row"><input id="heroImage" placeholder="Paste an image URL or upload below"><button type="button" class="secondary image-upload-btn" data-image-target="heroImage">Upload & Crop</button></div>
-  <small class="field-help">Target: 16:9 landscape. Recommended 1600 × 900.</small>
-  <div class="image-thumb-wrap" id="heroImagePreview"></div>
-</div>
-<div class="image-field full">
-  <label>About Image</label>
-  <div class="image-url-row"><input id="aboutImage" placeholder="Paste an image URL or upload below"><button type="button" class="secondary image-upload-btn" data-image-target="aboutImage">Upload & Crop</button></div>
-  <small class="field-help">Target: 1.18:1 landscape. Recommended 1200 × 1020.</small>
-  <div class="image-thumb-wrap" id="aboutImagePreview"></div>
-</div>
+    <label class="full">Hero Image URL<input id="heroImage"></label>
+     <label class="full">About Image URL
+       <input id="aboutImage" type="url" placeholder="Upload below or paste a Cloudinary URL">
+       <div class="media-inline-upload">
+         <label class="secondary" for="aboutImageFile">Upload About Image</label>
+         <input id="aboutImageFile" type="file" accept="image/jpeg,image/png,image/webp">
+         <span id="aboutImageStatus"></span>
+       </div>
+       <small class="field-help">The image is automatically center-cropped to a landscape format and converted to WebP.</small>
+       <div id="aboutImagePreview" class="settings-image-preview"></div>
+     </label>
     <div class="subhead">About Us</div>
     <label>Experience Display<input id="experienceYears" placeholder="10+"></label><label class="full">About Text<textarea id="aboutText"></textarea></label>
     <div class="subhead">Social Links</div>
@@ -111,25 +110,11 @@
     <label class="full">Page Title<input id="seoTitle"></label>
     <label class="full">Meta Description<textarea id="seoDescription"></textarea></label>
     <label class="full">Primary Keywords<input id="seoKeywords"></label>
-    <label>Canonical URL<input id="seoCanonical"></label>
-<label class="image-field">OG Image
-  <div class="image-url-row"><input id="seoOgImage" placeholder="Paste an image URL or upload below"><button type="button" class="secondary image-upload-btn" data-image-target="seoOgImage">Upload & Crop</button></div>
-  <small class="field-help">Target: 1.91:1 landscape. Recommended 1200 × 630.</small>
-  <div class="image-thumb-wrap" id="seoOgImagePreview"></div>
-</label>
+    <label>Canonical URL<input id="seoCanonical"></label><label>OG Image URL<input id="seoOgImage"></label>
   </form>
   <div class="seo-note">Use genuine services, locations and claims. Avoid keyword stuffing, fake testimonials and unverifiable guarantees.</div>
 </section>
 </main>
-</div>
-
-<div class="cropper-bg" id="cropperBg">
-  <div class="cropper-modal">
-    <div class="modal-head"><div><p class="eyebrow">IMAGE EDITOR</p><h2 id="cropTitle">Crop Image</h2><small id="cropDimensions"></small></div><button id="cropClose" class="close" type="button">×</button></div>
-    <div class="cropper-stage"><canvas id="cropCanvas"></canvas></div>
-    <div class="cropper-controls"><label>Zoom <input id="cropZoom" type="range" min="1" max="3" step=".01" value="1"></label><small>Drag the image to position it.</small></div>
-    <div class="modal-actions"><button class="secondary" id="cropCancel" type="button">Cancel</button><button class="primary" id="cropConfirm" type="button">Crop & Upload</button></div>
-  </div>
 </div>
 
 <div class="modal-bg" id="modalBg">
