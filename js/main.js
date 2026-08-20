@@ -48,11 +48,14 @@ function render(data) {
     </article>`).join("");
 
   document.querySelector("#servicesGrid").innerHTML = data.services.map((x, i) => `
-    <article class="service-card" tabindex="0" role="button" data-service-index="${i}" aria-label="View details for ${esc(x[0])}">
-      <div class="icon">${x[2] ? `<img class="service-image" src="${esc(x[2])}" alt="${esc(x[0])}" loading="lazy">` : esc(x[1])}</div>
-      <h3>${esc(x[0])}</h3>
-      <span class="service-card-more">View Details</span>
-    </article>`).join("");
+    <div class="service-item">
+      <article class="service-card" tabindex="0" role="button" data-service-index="${i}" aria-label="View details for ${esc(x[0])}">
+        <div class="icon">${x[2] ? `<img class="service-image" src="${esc(x[2])}" alt="${esc(x[0])}" loading="lazy" decoding="async">` : esc(x[1])}</div>
+        <h3>${esc(x[0])}</h3>
+        <span class="service-card-more">View Details</span>
+      </article>
+      <p class="service-description">${esc(x[3] || "Professional service delivered with quality, precision and attention to your project requirements.")}</p>
+    </div>`).join("");
 
   document.querySelectorAll("#servicesGrid .service-card").forEach(card => {
     const open = () => openServiceModal(data.services[Number(card.dataset.serviceIndex)]);
