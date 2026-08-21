@@ -136,7 +136,33 @@ function applySiteSettings(s) {
   const emailLink = document.querySelector("#emailLink");
   emailLink.textContent = site.email || "Contact details will be configured";
   emailLink.href = site.email ? "mailto:" + site.email : "#contact";
-  document.querySelector("#addressText").textContent = site.address || "Location details will be configured";
+  const addressText = document.querySelector("#addressText");
+  addressText.textContent = site.address || "Location details will be configured";
+  const addressUrl = String(site.addressUrl || site.mapUrl || "").trim();
+  if (addressUrl) {
+    addressText.href = addressUrl;
+    addressText.target = "_blank";
+    addressText.rel = "noopener noreferrer";
+    addressText.classList.add("address-link");
+  } else {
+    addressText.removeAttribute("href");
+    addressText.removeAttribute("target");
+    addressText.removeAttribute("rel");
+    addressText.classList.remove("address-link");
+  }
+  const mapLink = document.querySelector("#mapLink");
+  if (mapLink) {
+    if (addressUrl) {
+      mapLink.href = addressUrl;
+      mapLink.hidden = false;
+    } else if (site.mapQuery) {
+      mapLink.href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(site.mapQuery);
+      mapLink.hidden = false;
+    } else {
+      mapLink.href = "#contact";
+      mapLink.hidden = true;
+    }
+  }
   document.querySelector("#footerCompany").textContent = site.name || "SRI PVT LTD";
   document.querySelector("#currentYear").textContent = new Date().getFullYear();
 

@@ -7,7 +7,9 @@ window.SITE_CONFIG = {
     whatsapp: "",
     email: "",
     address: "",
+    addressUrl: "",
     mapQuery: "",
+    mapUrl: "",
     experience: "10+",
     social: { facebook: "#", instagram: "#", linkedin: "#", youtube: "#" }
   },

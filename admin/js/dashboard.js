@@ -250,7 +250,7 @@ $("#itemForm").onsubmit=async e=>{
 
 function fillSettings(){
   const s=state.settings||{},map={
-    companyName:s.name,phone:s.phone,whatsapp:s.whatsapp,email:s.email,address:s.address,workingHours:s.workingHours,mapQuery:s.mapQuery,
+    companyName:s.name,phone:s.phone,whatsapp:s.whatsapp,email:s.email,address:s.address,addressUrl:s.addressUrl,workingHours:s.workingHours,mapQuery:s.mapQuery,mapUrl:s.mapUrl,
     heroEyebrow:s.heroEyebrow,heroHeading:s.heroHeading,heroDescription:s.heroDescription,heroImage:s.heroImage,aboutImage:s.aboutImage,
     experienceYears:s.experienceYears,aboutText:s.aboutText,facebook:s.social?.facebook,instagram:s.social?.instagram,linkedin:s.social?.linkedin,youtube:s.social?.youtube
   };
@@ -280,7 +280,7 @@ $("#aboutImageFile")?.addEventListener("change", async e=>{
 });
 $("#saveSettings").onclick=async()=>{
   const data={name:$("#companyName").value.trim(),phone:$("#phone").value.trim(),whatsapp:$("#whatsapp").value.trim(),email:$("#email").value.trim(),
-    address:$("#address").value.trim(),workingHours:$("#workingHours").value.trim(),mapQuery:$("#mapQuery").value.trim(),
+    address:$("#address").value.trim(),addressUrl:$("#addressUrl").value.trim(),workingHours:$("#workingHours").value.trim(),mapQuery:$("#mapQuery").value.trim(),mapUrl:$("#mapUrl").value.trim(),
     heroEyebrow:$("#heroEyebrow").value.trim(),heroHeading:$("#heroHeading").value.trim(),heroDescription:$("#heroDescription").value.trim(),
     heroImage:$("#heroImage").value.trim(),aboutImage:$("#aboutImage").value.trim(),experienceYears:$("#experienceYears").value.trim(),aboutText:$("#aboutText").value.trim(),
     social:{facebook:$("#facebook").value.trim(),instagram:$("#instagram").value.trim(),linkedin:$("#linkedin").value.trim(),youtube:$("#youtube").value.trim()},updatedAt:serverTimestamp()};
