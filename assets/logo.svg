@@ -1,6 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 90">
-  <path d="M25 67V32l26-18 26 18v35H62V45H40v22Z" fill="#ff5a00"/>
-  <path d="M39 67V39l12-8 12 8v28" fill="none" stroke="#10284a" stroke-width="5"/>
-  <text x="93" y="43" font-family="Arial" font-size="27" font-weight="800" fill="#10284a">YOUR LOGO</text>
-  <text x="94" y="65" font-family="Arial" font-size="13" font-weight="700" letter-spacing="3" fill="#10284a">CONSTRUCTION</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 110" role="img" aria-labelledby="title desc">
+  <title id="title">SRI PVT LTD</title>
+  <desc id="desc">SRI PVT LTD construction and design company</desc>
+  <path d="M28 82V38l36-25 36 25v44H81V53H47v29Z" fill="#ff5a00"/>
+  <path d="M46 82V46l18-12 18 12v36" fill="none" stroke="#10284a" stroke-width="6" stroke-linejoin="round"/>
+  <text x="122" y="55" font-family="Arial, sans-serif" font-size="43" font-weight="800" letter-spacing="1" fill="#10284a">SRI PVT LTD</text>
+  <text x="124" y="82" font-family="Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="4" fill="#10284a">CONSTRUCTION • DESIGN • DEVELOPMENT</text>
 </svg>

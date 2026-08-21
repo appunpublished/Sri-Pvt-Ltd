@@ -1,10 +1,8 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-
 const CACHE_KEY = "sri-site-cache-v2";
 const CACHE_TTL = 5 * 60 * 1000;
 
 const C = window.SITE_CONFIG || {};
+let runtimeSite = {...(C.site || {})};
 const defaults = {
   services: [
     ["Architectural Design","⌂","","Thoughtfully designed spaces that combine aesthetics, functionality and efficient planning, tailored to your vision, lifestyle and site requirements."],
@@ -66,7 +64,10 @@ function render(data) {
   });
 
   document.querySelector("#citiesGrid").innerHTML = data.cities.map(x => `
-    <article class="city-card"><div class="icon">⌖</div><div>${esc(x)}</div></article>`).join("");
+    <article class="city-card">
+      <span class="city-icon" aria-hidden="true">⌖</span>
+      <h3 class="city-name">${esc(x)}</h3>
+    </article>`).join("");
 
   document.querySelector("#testimonialsGrid").innerHTML = data.testimonials.map(x => `
     <article class="testimonial-card">
@@ -127,12 +128,15 @@ function closeServiceModal() {
 
 function applySiteSettings(s) {
   const site = {...(C.site || {}), ...(s || {})};
+  runtimeSite = site;
   document.querySelector("#experienceYears").textContent = site.experienceYears || site.experience || "10+";
-  document.querySelector("#phoneLink").textContent = site.phone || "";
-  document.querySelector("#phoneLink").href = "tel:" + String(site.phone || "").replace(/[^\d+]/g,"");
-  document.querySelector("#emailLink").textContent = site.email || "";
-  document.querySelector("#emailLink").href = "mailto:" + (site.email || "");
-  document.querySelector("#addressText").textContent = site.address || "";
+  const phoneLink = document.querySelector("#phoneLink");
+  phoneLink.textContent = site.phone || "Contact details will be configured";
+  phoneLink.href = site.phone ? "tel:" + String(site.phone).replace(/[^\d+]/g,"") : "#contact";
+  const emailLink = document.querySelector("#emailLink");
+  emailLink.textContent = site.email || "Contact details will be configured";
+  emailLink.href = site.email ? "mailto:" + site.email : "#contact";
+  document.querySelector("#addressText").textContent = site.address || "Location details will be configured";
   document.querySelector("#footerCompany").textContent = site.name || "SRI PVT LTD";
   document.querySelector("#currentYear").textContent = new Date().getFullYear();
 
@@ -154,14 +158,21 @@ function applySiteSettings(s) {
     .forEach(([key,id]) => { if (socials[key]) document.querySelector("#"+id).href = socials[key]; });
 
   const wa = document.querySelector("#whatsappFloat");
-  wa.href = "https://wa.me/" + String(site.whatsapp || "").replace(/\D/g,"") +
-    "?text=" + encodeURIComponent("Hello, I would like to enquire about your construction services.");
+  const waNumber = String(site.whatsapp || "").replace(/\D/g,"");
+  if (waNumber) {
+    wa.href = "https://wa.me/" + waNumber + "?text=" + encodeURIComponent("Hello, I would like to enquire about your construction services.");
+    wa.removeAttribute("aria-disabled");
+  } else {
+    wa.href = "#contact";
+    wa.setAttribute("aria-disabled", "true");
+  }
 }
 
 function getCachedSiteData() {
   try {
     const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
     if (!cached || !cached.data) return null;
+    if (!cached.time || Date.now() - cached.time > CACHE_TTL) return null;
     return cached;
   } catch { return null; }
 }
@@ -191,6 +202,10 @@ async function loadFirebaseContent() {
   }
 
   try {
+    const [{ initializeApp }, { getFirestore, collection, getDocs, doc, getDoc, query, where }] = await Promise.all([
+      import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js")
+    ]);
     const app = initializeApp(C.firebase);
     const db = getFirestore(app);
 
@@ -269,7 +284,7 @@ document.querySelectorAll("#primaryNav a").forEach(a => a.addEventListener("clic
 document.querySelector("#contactForm").addEventListener("submit", e => {
   e.preventDefault();
   const f = new FormData(e.target);
-  const number = String(C.site?.whatsapp || "").replace(/\D/g,"");
+  const number = String(runtimeSite.whatsapp || "").replace(/\D/g,"");
   const text =
 `New Website Enquiry
 Name: ${f.get("name")}
@@ -277,6 +292,10 @@ Email: ${f.get("email")}
 Phone: ${f.get("phone")}
 Service: ${f.get("service") || "Not specified"}
 Message: ${f.get("message") || "Not specified"}`;
+  if (!number) {
+    alert("WhatsApp contact is not configured yet.");
+    return;
+  }
   window.open("https://wa.me/" + number + "?text=" + encodeURIComponent(text), "_blank", "noopener");
 });
 

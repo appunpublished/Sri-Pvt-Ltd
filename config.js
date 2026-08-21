@@ -2,12 +2,12 @@ window.SITE_CONFIG = {
   site: {
     name: "SRI PVT LTD",
     legalName: "SRI PVT LTD",
-    url: "https://www.example.com/",
-    phone: "+91 00000 00000",
-    whatsapp: "910000000000",
-    email: "info@example.com",
-    address: "Your Street, Your City, Your State — 000000",
-    mapQuery: "Delhi India",
+    url: "",
+    phone: "",
+    whatsapp: "",
+    email: "",
+    address: "",
+    mapQuery: "",
     experience: "10+",
     social: { facebook: "#", instagram: "#", linkedin: "#", youtube: "#" }
   },
