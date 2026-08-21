@@ -18,10 +18,7 @@
   <meta name="twitter:description" content="Professional construction and turnkey project services.">
   <meta name="twitter:image" content="assets/hero.svg">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="image" href="assets/hero.svg" fetchpriority="high">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="assets/hero.svg" fetchpriority="high" type="image/svg+xml">
   <link rel="stylesheet" href="css/styles.css">
 
   <script type="application/ld+json" id="organizationSchema">
@@ -78,12 +75,12 @@
         </div>
       </div>
       <div class="hero-visual">
-        <img id="heroImage" src="assets/hero.svg" alt="Modern residential construction project" fetchpriority="high">
+        <img id="heroImage" src="assets/hero.svg" alt="Modern residential construction project" width="900" height="620" fetchpriority="high" decoding="async">
       </div>
     </div>
   </section>
 
-  <section class="section about-section" id="about">
+  <section class="section about-section" id="about" data-deferred>
     <div class="container about-grid">
       <div class="about-image-wrap">
         <img id="aboutImage" src="assets/about.svg" alt="Construction site and project development" width="900" height="760" loading="lazy" decoding="async">
@@ -104,7 +101,7 @@
     </div>
   </section>
 
-  <section class="section cost-section" id="cost">
+  <section class="section cost-section" id="cost" data-deferred>
     <div class="container">
       <div class="section-heading light">
         <p class="eyebrow">PROJECT COST</p>
@@ -115,7 +112,7 @@
     </div>
   </section>
 
-  <section class="section services-section" id="services">
+  <section class="section services-section" id="services" data-deferred>
     <div class="container">
       <div class="section-heading">
         <p class="eyebrow">OUR SERVICES</p>
@@ -126,7 +123,7 @@
     </div>
   </section>
 
-  <section class="section cities-section" id="cities">
+  <section class="section cities-section" id="cities" data-deferred>
     <div class="container cities-layout">
       <div class="cities-intro">
         <p class="eyebrow">CITIES WE SERVE</p>
@@ -137,7 +134,7 @@
     </div>
   </section>
 
-  <section class="section testimonials-section" id="testimonials">
+  <section class="section testimonials-section" id="testimonials" data-deferred>
     <div class="container">
       <div class="section-heading">
         <p class="eyebrow">TESTIMONIALS</p>
@@ -147,7 +144,7 @@
     </div>
   </section>
 
-  <section class="contact-section" id="contact">
+  <section class="contact-section" id="contact" data-deferred>
     <div class="container contact-grid">
       <div class="contact-info">
         <p class="eyebrow">CONTACT US</p>

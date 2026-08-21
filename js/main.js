@@ -299,4 +299,9 @@ Message: ${f.get("message") || "Not specified"}`;
   window.open("https://wa.me/" + number + "?text=" + encodeURIComponent(text), "_blank", "noopener");
 });
 
-loadFirebaseContent();
+const startRemoteContent = () => loadFirebaseContent();
+if ("requestIdleCallback" in window) {
+  requestIdleCallback(startRemoteContent, {timeout: 2500});
+} else {
+  window.setTimeout(startRemoteContent, 1200);
+}
